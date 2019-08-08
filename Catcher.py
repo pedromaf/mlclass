@@ -4,27 +4,47 @@ import numpy as np
 import random
 
 exploration_rate = 0.2
+gamma = 0.
+alpha = 0.6
 
 class RandomAgent:
 	def __init__(self, actions):
 		self.actions = actions
 		self.q_table = np.empty((301, 301, 3)) #(player_x, fruit_x, actions)
-		for i in range(0, 301):
-			for k in range(0, 301):
-				for y in range(0, 3):
-					self.q_table[i][k][y] = random.randrange(0, 100)
+		for player_x in range(0, 301):
+			for fruit_x in range(0, 301):
+				for action in range(0, 3):
+					self.q_table[player_x][fruit_x][action] = random.randrange(0, 100)
 
-	def pickAction(self, state, reward):
+	def maxQAction(state):
+		player_x = state.get("player_x")
+		fruit_x = state.get("fruit_x")
+		return max(self.q_table[player_x][fruit_x][0], self.q_table[player_x][fruit_x][1], self.q_table[player_x][fruit_x][2])
+
+	def pickAction(self, state):
 		if random.uniform(0, 1)  <= exploration_rate:
 			#Exploration
 			return random.choice(self.actions)
 		else:
 			#Exploitation
-			return
+			return maxQAction(state)
 
-def reward()
-				
-'''
+def reward(state0, state1, fruit_reward):
+	state0_player_x = state0.get("player_x")
+	state0_fruit_x = state0.get("fruit_x")
+	state1_player_x = state1.get("player_x")
+	state1_fruit_x = state1.get("fruit_x")
+
+	state0_goal_distance = pow(state0_fruit_x - state0_player_x, 2)
+	state1_goal_distance = pow(state1_fruit_x - state1_player_x, 2)
+
+	goal_progress = state0_goal_distance/state1_goal_distance
+
+	if goal_progress < 1:
+		return ((-goal_progress) + (fruit_reward*100))
+	else:
+		return (goal_progress + (fruit_reward*100))	
+'''	
 State Formate:
 {
     'player_x': int, 		0 - 205
@@ -54,6 +74,8 @@ for f in range(nb_frames):
 		p.reset_game()
 
 	state0 = game.getGameState()
-	action = agent.pickAction(state0, reward)
+	action = agent.pickAction(state0)
 	state1 = game.getGameState()
-	reward = p.act(action)
+	reward = reward(state0, state1, p.act(action))
+	current_Q = RandomAgent.q_table[state0.get("player_x")][state0.get("fruit_x")][action]
+	RandomAgent.q_table[state0.get("player_x")][state0.get("fruit_x")][action] = current_Q + alpha*(reward + gamma*(RandomAgent.maxQAction(state1)) - current_Q)
