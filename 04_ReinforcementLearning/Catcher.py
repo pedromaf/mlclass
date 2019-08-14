@@ -1,3 +1,5 @@
+# Equipe Machine big deep data learning vovozinha science
+
 from ple.games.catcher import Catcher
 from ple import PLE
 import numpy as np
